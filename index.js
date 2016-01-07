@@ -2,7 +2,7 @@
 var express = require('express');
 var app = express();
 var server = require('http').createServer(app);
-var io = require('../..')(server);
+var io = require('socket.io')(server);
 var port = process.env.PORT || 3000;
 
 server.listen(port, function () {
@@ -60,12 +60,27 @@ io.on('connection', function (socket) {
 		console.log(name);
         if(name in users){
             console.log('the entered user is online ' + name);
-            callback(true);
+            
+            
+            // need to send request box to other user, if accepted then open up chat, else go back to lobby and alert user that request was denied
+            users[name].emit('request', {username: socket.username}, function(data){
+                if(data){
+                    console.log('The user accepted.');
+                    callback(true);
+                }
+                else{
+                    console.log('The user rejected.');
+                    callback(false);
+                }
+            });
+            // need to create pair of current socket and desired user if accepted so they can send chat to each other
+            
         } else{
             console.log('the entered user is not online ' + data);
             callback(false);
         }
   });
+    
     
     
   // when the client emits 'add user', this listens and executes

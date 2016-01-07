@@ -144,10 +144,15 @@ ul {
 
 /* Chat page */
 
-.chat.chatpage {
+.chat.page {
   display: none;
 }
 
+/* Private page */
+
+.private.page {
+  display: none;
+}
 /* Font */
 
 .messages {

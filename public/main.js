@@ -25,6 +25,8 @@ $(function() {
   var connected = false;
   var typing = false;
   var lastTypingTime;
+  var lobbyFlag = true;     //set initially to true until user leaves lobby
+  var privateFlag = false;
   var $currentInput = $usernameInput.focus();
 
   var socket = io();
@@ -57,8 +59,8 @@ $(function() {
       function () { 
           $lobby.fadeOut(); 
           $chatPage.show();
-          
           $currentInput = $inputMessage.focus();
+          lobbyFlag = false;        // no longer in lobby
       };
 
       
@@ -69,19 +71,25 @@ $(function() {
   function setPrivate () {
     opponent = cleanInput($privatenameInput.val().trim());
     console.log(opponent);
+    privateFlag = true;  
+      
     // need to check if opponent name entered is online
     socket.emit('private', opponent, function(data){
         
         if (data){
             $lobby.fadeOut();
+            lobbyFlag = false;
+            $chatPage.show();
+
         }
         else{
-            console.log('The user is not online.');
+            console.log('The user is not online or rejected your request.'); // need to output this to screen as text 
+            opponent = null;
+            $privatenameInput.val('');
+            $privatenameInput.focus();
+            privateFlag = false;
         }
     });
-    
-    $privatenameInput.val('s');
-    $privatenameInput.focus();
 
   }
 
@@ -238,7 +246,7 @@ $(function() {
     // When the client hits ENTER on their keyboard
     if (event.which === 13) {
         // if the user is registered and the opponent isn't, and the user hit enter
-      if (username && (!opponent)) {
+      if (username && (!opponent) && lobbyFlag) {
           console.log('The private user entered is: ' + $privatenameInput);
           setPrivate($privatenameInput);
       }    
@@ -342,5 +350,19 @@ $window.onkeyup = function() {
         
     });    
     
+    
+    socket.on('request', function(data, callback){
+        var response = confirm(data.username + " wants to speak with you!");
+        if(response){
+            $lobby.fadeOut();
+            lobbyFlag = false;
+            $chatPage.show();
+            callback(true);
+        }
+        else{
+            callback(false);
+        }
+        
+    });
     
 });
