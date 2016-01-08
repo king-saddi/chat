@@ -17,6 +17,7 @@ app.use(express.static(__dirname + '/public'));
 var numUsers = 0;
 var online = [];
 var users = {};
+var pairs= {};
 
 io.on('connection', function (socket) {
   var addedUser = false;
@@ -25,27 +26,12 @@ io.on('connection', function (socket) {
   socket.on('new message', function (data) {
     // we tell the client to execute 'new message'
       var msg = data.trim();
-		if(msg.substr(0,3) === '/w '){
-			msg = msg.substr(3);
-			var ind = msg.indexOf(' ');
-			if(ind !== -1){
-				var name = msg.substring(0, ind);
-				var msg = msg.substring(ind + 1);
-				if(name in users){
-					users[name].emit('whisper', {username: socket.username, message: msg,});
+      if(pairs[socket.username]){
+			
+					users[pairs[socket.username]].emit('whisper', {username: socket.username, message: msg,});
 					console.log('message sent is: ' + msg);
-                    console.log('whispher');
-				} else{
-					console.log('Error!  Enter a valid user.');
-                    //callback('Error!  Enter a valid user.');
-				}
-			} else{
-				console.log('Error!  Please enter a message for your whisper.');
-                //callback('Error! Enter a valid message.');
-			}
-		}
+      }
       else{
-
         socket.broadcast.emit('new message', {
           username: socket.username,
           message: data
@@ -66,6 +52,9 @@ io.on('connection', function (socket) {
             users[name].emit('request', {username: socket.username}, function(data){
                 if(data){
                     console.log('The user accepted.');
+                    // create link between both users
+                    pairs[socket.username] = name;
+                    pairs[name] = socket.username;
                     callback(true);
                 }
                 else{
@@ -73,7 +62,6 @@ io.on('connection', function (socket) {
                     callback(false);
                 }
             });
-            // need to create pair of current socket and desired user if accepted so they can send chat to each other
             
         } else{
             console.log('the entered user is not online ' + data);
