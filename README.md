@@ -23,3 +23,6 @@ on website load.
 - Users can type chat messages to the chat room.
 - A notification is sent to all users when a user joins or leaves
 the chatroom.
+- Added a lobby
+- Online user bar part of chat-room
+- Private messaging is now enabled between users, working on making this for seperate screens
